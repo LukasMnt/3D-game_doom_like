@@ -11,15 +11,15 @@ def displayWalls(d, screen):
     return walls
 
 #rayPart
-def distanceR(playerPos, matMap, thetas, numbOfRays):
+def distanceR(playerPosX, playerPosY, matMap, thetas, numbOfRays):
     i=0
     distances = [0 for i in range(numbOfRays)]
     for theta in thetas:
         isWall = False
         while not isWall :
             distances[i] += 0.1
-            watchX = playerPos[1]+distances[i]*math.cos(theta)
-            watchY = playerPos[0]+distances[i]*math.sin(theta)
+            watchX = playerPosY+distances[i]*math.cos(theta)
+            watchY = playerPosX+distances[i]*math.sin(theta)
             watchX = math.floor(watchX)
             watchY = math.floor(watchY)
             if matMap[watchY][watchX] == 1:
@@ -38,7 +38,8 @@ matMap=[[1,1,1,1,1,1,1,1,1,1],
         [1,0,0,0,0,0,0,0,0,1],
         [1,1,1,1,1,1,1,1,1,1]]
 
-playerPos = (1.1,1.1)
+playerPosX = 1.1
+playerPosY = 1.1
 theta = 45   #where do you watch ? 0 = right, 90 = down, 180 = left, 270 = -90 = top
 
 fov = 80    #if next to a wall and fov of 90, not working
@@ -46,8 +47,9 @@ fov = fov/2
 numbOfRays = 101
 cst = 2*fov/(numbOfRays-1)
 thetas = [(theta-fov+cst*i)*math.pi/180 for i in range(numbOfRays)]
+theta2 = theta*math.pi/180
 
-d = distanceR(playerPos, matMap, thetas, numbOfRays)
+d = distanceR(playerPosX,playerPosY, matMap, thetas, numbOfRays)
 
 #displayPart
 pygame.init()
@@ -62,13 +64,49 @@ bg.fill("#000000")
 
 walls = displayWalls(d, screen)
 
+keys=[False,False,False,False]
 while True:
     #update
+    d = distanceR(playerPosX,playerPosY, matMap, thetas, numbOfRays)
+    thetas = [(theta-fov+cst*i)*math.pi/180 for i in range(numbOfRays)]
+    theta2 = theta*math.pi/180
     for event in pygame.event.get():
         #if we press the red cross
         if event.type == pygame.QUIT:
             pygame.quit()
             exit()
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_w:
+                keys[0] = True
+            elif event.key == pygame.K_a:
+                keys[1] = True
+            elif event.key == pygame.K_s:
+                keys[2] = True
+            elif event.key == pygame.K_d:
+                keys[3] = True
+        elif event.type == pygame.KEYUP:
+            if event.key == pygame.K_w:
+                keys[0] = False
+            elif event.key == pygame.K_a:
+                keys[1] = False
+            elif event.key == pygame.K_s:
+                keys[2] = False
+            elif event.key == pygame.K_d:
+                keys[3] = False
+        if keys[3]:
+            playerPosX+= 0.5*math.cos(theta2)
+            playerPosY+= 0.5*math.sin(theta2)
+        if keys[1]:
+            playerPosX-= 0.5*math.sin(theta2)
+            playerPosY-= 0.5*math.cos(theta2)
+        if keys[0]:
+            playerPosX+= 0.5*math.sin(theta2)
+            playerPosY+= 0.5*math.cos(theta2)
+        if keys[2]:
+            playerPosX-= 0.5*math.cos(theta2)
+            playerPosY-= 0.5*math.sin(theta2)
+        print(playerPosX,playerPosY)
+        #print screen
         screen.blit(bg, (0,0))
         for i in range(len(walls)):
             x = i*screen.get_width()/len(walls)
