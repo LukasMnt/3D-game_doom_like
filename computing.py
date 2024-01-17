@@ -44,7 +44,8 @@ dx = [0,0]
 dy = [0,0]
 theta = 0   #where do you watch ? 0 = right, 90 = down, 180 = left, 270 = -90 = top
 dt = 0
-speed = 0.1
+initSpeed = 0.1
+speed = initSpeed
 circSpeed = 2
 
 playerPosZ = 0
@@ -107,7 +108,10 @@ while True:
                     speed /= 4
                 elif playerPosZ < 0:
                     playerPosZ = 0
-                    speed *= 4
+                    speed = initSpeed
+            elif event.key == pygame.K_SPACE :
+                if playerPosZ == 0 and heightVisu == 0:
+                    playerPosZ = 420
                 
         elif event.type == pygame.KEYUP:
             pressed_keys = pygame.key.get_pressed()
@@ -124,12 +128,10 @@ while True:
     if matMap[math.floor(playerPosX + dx[0]*speedCos+dx[1]*speedSin)][math.floor(playerPosY + dy[0]*speedCos+dy[1]*speedSin)]!=1:
         playerPosX+= dx[0]*speedCos+dx[1]*speedSin
         playerPosY+= dy[0]*speedCos+dy[1]*speedSin
-    
     if playerPosZ > 0:
-        playerPosZ -= 8
-    
+        playerPosZ -= 14
     if heightVisu < playerPosZ:
-        heightVisu += 8
+        heightVisu += 14
     elif heightVisu > playerPosZ:
         heightVisu -= 8
     
