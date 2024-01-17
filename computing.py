@@ -51,7 +51,7 @@ circSpeed = 2
 playerPosZ = 0
 heightVisu = 0
 
-fov = 80    #if next to a wall and fov of 90, not working
+fov = 60    #if next to a wall and fov of 90, not working
 fov = fov/2
 numbOfRays = 101
 cst = 2*fov/(numbOfRays-1)
@@ -62,8 +62,8 @@ d = distanceR(playerPosX,playerPosY, matMap, thetas, numbOfRays)
 
 #displayPart
 pygame.init()
-width=1500
-height=800
+width=pygame.display.Info().current_w
+height=pygame.display.Info().current_h
 screen = pygame.display.set_mode((width,height))
 pygame.display.set_caption("Doom_like")
 clock = pygame.time.Clock()
@@ -87,17 +87,17 @@ while True:
             exit()
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_w:
-                dx = [0,1]
-                dy = [1,0]
-            elif event.key == pygame.K_s:
-                dx = [0,-1]
-                dy = [-1,0]
-            elif event.key == pygame.K_a:
-                dx = [-1,0]
-                dy = [0,1]
-            elif event.key == pygame.K_d:
-                dx = [1,0]
-                dy = [0,-1]
+                dx = [dx[0],dx[1]+1]
+                dy = [dy[0]+1,dy[1]]
+            if event.key == pygame.K_s:
+                dx = [dx[0],dx[1]-1]
+                dy = [dy[0]-1,dy[1]]
+            if event.key == pygame.K_a:
+                dx = [dx[0]-1,dx[1]]
+                dy = [dy[0],dy[1]+1]
+            if event.key == pygame.K_d:
+                dx = [dx[0]+1,dx[1]]
+                dy = [dy[0],dy[1]-1]
             if event.key == pygame.K_RIGHT :
                 dt = circSpeed
             elif event.key == pygame.K_LEFT :
@@ -114,13 +114,20 @@ while True:
                     playerPosZ = 420
                 
         elif event.type == pygame.KEYUP:
-            pressed_keys = pygame.key.get_pressed()
-            if not (pressed_keys[pygame.K_a] or pressed_keys[pygame.K_d] or pressed_keys[pygame.K_w] or pressed_keys[pygame.K_s]):
-                if event.key == pygame.K_w or event.key == pygame.K_s or event.key == pygame.K_a or event.key == pygame.K_d:
-                    dx = [0,0]
-                    dy = [0,0]
             if event.key == pygame.K_RIGHT or event.key == pygame.K_LEFT :
                 dt = 0
+            if event.key == pygame.K_w:
+                dx = [dx[0],dx[1]-1]
+                dy = [dy[0]-1,dy[1]]
+            if event.key == pygame.K_s:
+                dx = [dx[0],dx[1]+1]
+                dy = [dy[0]+1,dy[1]]
+            if event.key == pygame.K_a:
+                dx = [dx[0]+1,dx[1]]
+                dy = [dy[0],dy[1]-1]
+            if event.key == pygame.K_d:
+                dx = [dx[0]-1,dx[1]]
+                dy = [dy[0],dy[1]+1]
     
     theta += dt
     speedCos = speed*math.cos(theta2)
