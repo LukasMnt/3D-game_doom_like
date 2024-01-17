@@ -40,7 +40,8 @@ matMap=[[1,1,1,1,1,1,1,1,1,1],
 
 playerPosX = 1.1
 playerPosY = 1.1
-theta = 45   #where do you watch ? 0 = right, 90 = down, 180 = left, 270 = -90 = top
+theta = 0   #where do you watch ? 0 = right, 90 = down, 180 = left, 270 = -90 = top
+speed = 0.1
 
 fov = 80    #if next to a wall and fov of 90, not working
 fov = fov/2
@@ -96,17 +97,21 @@ while True:
             elif event.key == pygame.K_d:
                 keys[3] = False
         if keys[3]:
-            playerPosX+= 0.5*math.cos(theta2)
-            playerPosY+= 0.5*math.sin(theta2)
+            if matMap[math.floor(playerPosX + speed*math.cos(theta2))][math.floor(playerPosY - speed*math.sin(theta2))]!=1:
+                playerPosX+= speed*math.cos(theta2)
+                playerPosY-= speed*math.sin(theta2)
         if keys[1]:
-            playerPosX-= 0.5*math.sin(theta2)
-            playerPosY-= 0.5*math.cos(theta2)
+            if matMap[math.floor(playerPosX - speed*math.cos(theta2))][math.floor(playerPosY + speed*math.sin(theta2))]!=1:
+                playerPosX-= speed*math.cos(theta2)
+                playerPosY+= speed*math.sin(theta2)
         if keys[0]:
-            playerPosX+= 0.5*math.sin(theta2)
-            playerPosY+= 0.5*math.cos(theta2)
+            if matMap[math.floor(playerPosX + speed*math.sin(theta2))][math.floor(playerPosY + speed*math.cos(theta2))]!=1:
+                playerPosX+= speed*math.sin(theta2)
+                playerPosY+= speed*math.cos(theta2)
         if keys[2]:
-            playerPosX-= 0.5*math.cos(theta2)
-            playerPosY-= 0.5*math.sin(theta2)
+            if matMap[math.floor(playerPosX - speed*math.sin(theta2))][math.floor(playerPosY - speed*math.cos(theta2))]!=1:
+                playerPosX-= speed*math.sin(theta2)
+                playerPosY-= speed*math.cos(theta2)
     print(playerPosX,playerPosY)
     #print screen
     screen.blit(bg, (0,0))
