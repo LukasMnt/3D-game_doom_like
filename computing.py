@@ -40,8 +40,8 @@ matMap=[[1,1,1,1,1,1,1,1,1,1],
 
 playerPosX = 1.1
 playerPosY = 1.1
-dx = 0
-dy = 0
+dx = [0,0]
+dy = [0,0]
 theta = 0   #where do you watch ? 0 = right, 90 = down, 180 = left, 270 = -90 = top
 dt = 0
 speed = 0.1
@@ -83,17 +83,17 @@ while True:
             exit()
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_w:
-                dx = speed*math.sin(theta2)
-                dy = speed*math.cos(theta2)
+                dx = [0,1]
+                dy = [1,0]
             elif event.key == pygame.K_s:
-                dx = -speed*math.sin(theta2)
-                dy = -speed*math.cos(theta2)
-            if event.key == pygame.K_a:
-                dx = -speed*math.cos(theta2)
-                dy = speed*math.sin(theta2)
+                dx = [0,-1]
+                dy = [-1,0]
+            elif event.key == pygame.K_a:
+                dx = [-1,0]
+                dy = [0,1]
             elif event.key == pygame.K_d:
-                dx = speed*math.cos(theta2)
-                dy = -speed*math.sin(theta2)
+                dx = [1,0]
+                dy = [0,-1]
             if event.key == pygame.K_RIGHT :
                 dt = circSpeed
             elif event.key == pygame.K_LEFT :
@@ -102,26 +102,28 @@ while True:
             pressed_keys = pygame.key.get_pressed()
             if not (pressed_keys[pygame.K_a] or pressed_keys[pygame.K_d] or pressed_keys[pygame.K_w] or pressed_keys[pygame.K_s]):
                 if event.key == pygame.K_w:
-                    dx = 0
-                    dy = 0
+                    dx = [0,0]
+                    dy = [0,0]
                 elif event.key == pygame.K_s:
-                    dx = 0
-                    dy = 0
+                    dx = [0,0]
+                    dy = [0,0]
                 elif event.key == pygame.K_a:
-                    dx = 0
-                    dy = 0
+                    dx = [0,0]
+                    dy = [0,0]
                 elif event.key == pygame.K_d:
-                    dx = 0
-                    dy = 0
+                    dx = [0,0]
+                    dy = [0,0]
             if event.key == pygame.K_RIGHT :
                 dt = 0
             elif event.key == pygame.K_LEFT :
                 dt = 0
 
     theta += dt
-    if matMap[math.floor(playerPosX + dx)][math.floor(playerPosY + dy)]!=1:
-        playerPosX+= dx
-        playerPosY+= dy
+    speedCos = speed*math.cos(theta2)
+    speedSin = speed*math.sin(theta2)
+    if matMap[math.floor(playerPosX + dx[0]*speedCos+dx[1]*speedSin)][math.floor(playerPosY + dy[0]*speedCos+dy[1]*speedSin)]!=1:
+        playerPosX+= dx[0]*speedCos+dx[1]*speedSin
+        playerPosY+= dy[0]*speedCos+dy[1]*speedSin
     #print screen
     screen.blit(bg, (0,0))
     for i in range(len(walls)):
