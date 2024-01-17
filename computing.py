@@ -70,6 +70,8 @@ while True:
     d = distanceR(playerPosX,playerPosY, matMap, thetas, numbOfRays)
     thetas = [(theta-fov+cst*i)*math.pi/180 for i in range(numbOfRays)]
     theta2 = theta*math.pi/180
+    walls = displayWalls(d, screen)
+    
     for event in pygame.event.get():
         #if we press the red cross
         if event.type == pygame.QUIT:
@@ -105,13 +107,13 @@ while True:
         if keys[2]:
             playerPosX-= 0.5*math.cos(theta2)
             playerPosY-= 0.5*math.sin(theta2)
-        print(playerPosX,playerPosY)
-        #print screen
-        screen.blit(bg, (0,0))
-        for i in range(len(walls)):
-            x = i*screen.get_width()/len(walls)
-            y = screen.get_height()//2 - walls[i].get_height() // 2
-            screen.blit(walls[i], (x,y))
-        
-        pygame.display.update()
-        clock.tick(60)
+    print(playerPosX,playerPosY)
+    #print screen
+    screen.blit(bg, (0,0))
+    for i in range(len(walls)):
+        x = i*screen.get_width()/len(walls)
+        y = screen.get_height()//2 - walls[i].get_height() // 2
+        screen.blit(walls[i], (x,y))
+    
+    pygame.display.update()
+    clock.tick(60)
