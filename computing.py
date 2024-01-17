@@ -47,6 +47,9 @@ dt = 0
 speed = 0.1
 circSpeed = 2
 
+playerPosZ = 0
+heightVisu = 0
+
 fov = 80    #if next to a wall and fov of 90, not working
 fov = fov/2
 numbOfRays = 101
@@ -98,37 +101,43 @@ while True:
                 dt = circSpeed
             elif event.key == pygame.K_LEFT :
                 dt = -circSpeed
+            if event.key == pygame.K_LCTRL :
+                if playerPosZ == 0:
+                    playerPosZ = -96
+                    speed /= 4
+                elif playerPosZ < 0:
+                    playerPosZ = 0
+                    speed *= 4
+                
         elif event.type == pygame.KEYUP:
             pressed_keys = pygame.key.get_pressed()
             if not (pressed_keys[pygame.K_a] or pressed_keys[pygame.K_d] or pressed_keys[pygame.K_w] or pressed_keys[pygame.K_s]):
-                if event.key == pygame.K_w:
+                if event.key == pygame.K_w or event.key == pygame.K_s or event.key == pygame.K_a or event.key == pygame.K_d:
                     dx = [0,0]
                     dy = [0,0]
-                elif event.key == pygame.K_s:
-                    dx = [0,0]
-                    dy = [0,0]
-                elif event.key == pygame.K_a:
-                    dx = [0,0]
-                    dy = [0,0]
-                elif event.key == pygame.K_d:
-                    dx = [0,0]
-                    dy = [0,0]
-            if event.key == pygame.K_RIGHT :
+            if event.key == pygame.K_RIGHT or event.key == pygame.K_LEFT :
                 dt = 0
-            elif event.key == pygame.K_LEFT :
-                dt = 0
-
+    
     theta += dt
     speedCos = speed*math.cos(theta2)
     speedSin = speed*math.sin(theta2)
     if matMap[math.floor(playerPosX + dx[0]*speedCos+dx[1]*speedSin)][math.floor(playerPosY + dy[0]*speedCos+dy[1]*speedSin)]!=1:
         playerPosX+= dx[0]*speedCos+dx[1]*speedSin
         playerPosY+= dy[0]*speedCos+dy[1]*speedSin
+    
+    if playerPosZ > 0:
+        playerPosZ -= 8
+    
+    if heightVisu < playerPosZ:
+        heightVisu += 8
+    elif heightVisu > playerPosZ:
+        heightVisu -= 8
+    
     #print screen
     screen.blit(bg, (0,0))
     for i in range(len(walls)):
         x = i*screen.get_width()/len(walls)
-        y = screen.get_height()//2 - walls[i].get_height() // 2
+        y = screen.get_height()//2 - walls[i].get_height() // 2 + heightVisu
         screen.blit(walls[i], (x,y))
     
     pygame.display.update()
