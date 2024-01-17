@@ -6,7 +6,7 @@ def distanceR(playerPos, matMap, thetas, numbOfRays):
     for theta in thetas:
         isWall = False
         while not isWall :
-            distances[i] += 1
+            distances[i] += 0.1
             watchX = playerPos[0]+distances[i]*math.cos(theta)
             watchY = playerPos[1]+distances[i]*math.sin(theta)
             watchX = math.floor(watchX)
