@@ -229,6 +229,9 @@ class PrintableObjects():
         displayRect.center=(fpsInf[2],fpsInf[3])
         self.screen.blit(img,displayRect)
 
+    def areFPS(self):
+        return self.showFPS
+
 def main():
     #initialise
     pygame.init()
@@ -245,9 +248,10 @@ def gameLoop(clock):
     fps = []
     meanFPS = 1
     mean1PL = 0
+    t = [time.time(),0]
     
     while True:
-        t1=time.time()
+
         #update
         allDists = myPlayer.distancesD(myMap.getMap())
         myPlayer.thetas = [(myPlayer.theta-myPlayer.fov+myPlayer.cst*i)*math.pi/180 for i in range(myPlayer.numbOfRays)]
@@ -267,13 +271,16 @@ def gameLoop(clock):
         
         clock.tick(60)
         
-        t2=time.time()
-        fps.append(1/(t2-t1))
-        if len(fps) > 600:
-            fps.pop(0)
-        meanFPS = math.floor(sum(fps)/len(fps))
-        PL = heapq.nsmallest(6, fps)
-        mean1PL = math.floor(sum(PL)/len(PL))
+        if printObj.areFPS():
+            t[1]=time.time()
+            fps.append(1/(t[1]-t[0]))
+            store = 600
+            if len(fps) > store:
+                fps.pop(0)
+            meanFPS = math.floor(sum(fps)/len(fps))
+            PL = heapq.nsmallest(math.floor(store/100), fps)
+            mean1PL = math.floor(sum(PL)/len(PL))
+            t[0] = t[1]
 main()
 
 """
