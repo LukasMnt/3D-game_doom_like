@@ -1,6 +1,7 @@
 import math
 from sys import exit
 import pygame
+import time
 
 class Maps():
     def __init__(self):
@@ -39,15 +40,16 @@ class Player():
         self.playerPosY = 2
         self.dx = [0,0]
         self.dy = [0,0]
-        self.theta = 45   #where do you watch ? 0 = right, 90 = down, 180 = left, 270 = -90 = top (on the matMap)
-        self.dt = 0
         self.initSpeed = 0.03
         self.speed = self.initSpeed
         self.run = 1
-        self.circSpeed = 3
         
         self.playerPosZ = 0
         self.heightVisu = 0
+        
+        self.theta = 45   #where do you watch ? 0 = right, 90 = down, 180 = left, 270 = -90 = top (on the matMap)
+        self.dt = 0
+        self.circSpeed = 3
         
         self.fov = 60/2
         self.numbOfRays = 96
@@ -129,20 +131,24 @@ class Player():
     #rayPart
     def distancesD(self, matMap):
         i=0
-        rayImp = 0.01
+        rayImp = 0.05
         distances = [0.1 for i in range(self.numbOfRays)]
         for theta in self.thetas:
             isWall = False
-            xUp = rayImp*math.cos(theta)
-            yUp = rayImp*math.sin(theta)
+            xStep = rayImp*math.cos(theta)
+            yStep = rayImp*math.sin(theta)
             watchX = self.playerPosY
             watchY = self.playerPosX
             while not isWall :
                 distances[i] += rayImp
-                watchX += xUp
-                watchY += yUp
-                if matMap[math.floor(watchY)][math.floor(watchX)] == 1:
-                    isWall = True
+                watchX += xStep
+                watchY += yStep
+                if math.floor(watchX) >= 0 and math.floor(watchY) >= 0 and math.floor(watchX) < len(matMap[0]) and math.floor(watchY) < len(matMap):
+                    if matMap[math.floor(watchY)][math.floor(watchX)] == 1:
+                        isWall = True
+                else:
+                    distances[i] = False
+                    break
             i+=1
         return distances
 
@@ -173,11 +179,16 @@ class PrintableObjects():
         numbOfSlices = len(allDists)
         self.walls = []
         for i in range(numbOfSlices):
-            wall = pygame.Surface((math.ceil(self.displayWidth/numbOfSlices), 2*800/allDists[i]))
-            wall.fill("#8B4009")
+            if allDists[i] != False:
+                wall = pygame.Surface((math.ceil(self.displayWidth/numbOfSlices), 1600/allDists[i]))
+                wall.fill("#8B4009")
+            else :
+                wall = pygame.Surface((math.ceil(self.displayWidth/numbOfSlices), self.displayHeight/2), pygame.SRCALPHA, 32)
+                wall = wall.convert_alpha()
+            
             self.walls.append(wall)
-        
-    def draw(self, heightVisu):
+            
+    def draw(self, heightVisu, fps):
         #first, draw the backgroud
         self.screen.blit(self.bgTop, (0,-self.displayHeight//2+ heightVisu))
         self.screen.blit(self.bgBot, (0,self.displayHeight//2+ heightVisu))
@@ -188,9 +199,20 @@ class PrintableObjects():
             y = self.screen.get_height()//2 - self.walls[i].get_height() // 2 + heightVisu
             self.screen.blit(self.walls[i], (x,y))
         
+        self.displayFPS(fps)
+        
         #end, print the crosshair
         self.screen.blit(self.crosshairV, ((self.screen.get_width()-self.crosshairV.get_width())//2,(self.screen.get_height()-self.crosshairV.get_height())//2))
         self.screen.blit(self.crosshairH, ((self.screen.get_width()-self.crosshairH.get_width())//2,(self.screen.get_height()-self.crosshairH.get_height())//2))
+        
+        pygame.display.update()
+        
+    def displayFPS(self,fpsInf) :
+        font = pygame.font.Font('Documents/1-Scolaire/1-PeiP/Peip2/ConfPeip/TP_pygame/TP1_resources/BradBunR.ttf',fpsInf[1])
+        img = font.render(fpsInf[0],True,(100,100,100))
+        displayRect = img.get_rect()
+        displayRect.center=(fpsInf[2],fpsInf[3])
+        self.screen.blit(img,displayRect)
         
         pygame.display.update()
 
@@ -207,26 +229,42 @@ def gameLoop(clock):
     myMap = Maps()
     myPlayer = Player()
     printObj = PrintableObjects()
+    fps = []
+    meanFPS = 1
+    
     while True:
+        t1=time.time()
         #update
         allDists = myPlayer.distancesD(myMap.getMap())
         myPlayer.thetas = [(myPlayer.theta-myPlayer.fov+myPlayer.cst*i)*math.pi/180 for i in range(myPlayer.numbOfRays)]
         printObj.computeWalls(allDists)
-        
         #compute
         for event in pygame.event.get():
             #if we press the red cross
             if event.type == pygame.QUIT:
                 pygame.quit()
                 exit()
+            #gesture of arrows and keys (mouse in the future)
             myPlayer.updateOnEvent(event)
-        
         #mov
         myPlayer.updateMov(myMap.getMap())
-        
         #print screen
-        printObj.draw(myPlayer.getHeightVisu())
+        printObj.draw(myPlayer.getHeightVisu(), [str(meanFPS), 100, 100, 100])
         
         clock.tick(60)
-
+        
+        t2=time.time()
+        fps.append(1/(t2-t1))
+        if len(fps) > 100:
+            fps.pop(0)
+        meanFPS = math.floor(sum(fps)/len(fps))
 main()
+
+"""
+What to improve ?
+    Moving in diagonal doubles the speed (or time sqrt(2) idk)
+    Looks a bit too rounded (infinit norme while computing allDists ?)
+    Textures must be 
+    Look up and down
+    Add mouse controll
+"""
