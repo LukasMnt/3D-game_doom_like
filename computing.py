@@ -24,6 +24,9 @@ class Maps():
                         [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1],
                         [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]]
     
+    def getMap(self):
+        return self.matMap
+    
     def updateMap():
         pass
     
@@ -47,7 +50,7 @@ class Player():
         self.heightVisu = 0
         
         self.fov = 60/2
-        self.numbOfRays = 101
+        self.numbOfRays = 96
         self.cst = 2*self.fov/(self.numbOfRays-1)
         self.thetas = [(self.theta-self.fov+self.cst*i)*math.pi/180 for i in range(self.numbOfRays)]
         self.theta2 = self.theta*math.pi/180
@@ -103,16 +106,16 @@ class Player():
             if event.key == pygame.K_LSHIFT :
                 self.run /= 2
     
-    def updateMouv(self, myMap):
+    def updateMov(self, matMap):
         self.theta += self.dt
         self.theta = self.theta%360
         self.theta2 = self.theta*math.pi/180
         
         speedCos = self.run*self.speed*math.cos(self.theta2)
         speedSin = self.run*self.speed*math.sin(self.theta2)
-        if myMap.matMap[math.floor(self.playerPosX + self.dx[0]*speedCos+self.dx[1]*speedSin)][math.floor(self.playerPosY)]!=1 :
+        if matMap[math.floor(self.playerPosX + self.dx[0]*speedCos+self.dx[1]*speedSin)][math.floor(self.playerPosY)]!=1 :
             self.playerPosX+= self.dx[0]*speedCos+self.dx[1]*speedSin
-        if myMap.matMap[math.floor(self.playerPosX)][math.floor(self.playerPosY + self.dy[0]*speedCos+self.dy[1]*speedSin)]!=1 :
+        if matMap[math.floor(self.playerPosX)][math.floor(self.playerPosY + self.dy[0]*speedCos+self.dy[1]*speedSin)]!=1 :
             self.playerPosY+= self.dy[0]*speedCos+self.dy[1]*speedSin
         
         if self.playerPosZ > 0:
@@ -123,72 +126,94 @@ class Player():
         elif self.heightVisu > self.playerPosZ:
             self.heightVisu -= 8
 
+    #rayPart
+    def distancesD(self, matMap):
+        i=0
+        rayImp = 0.01
+        distances = [0.1 for i in range(self.numbOfRays)]
+        for theta in self.thetas:
+            isWall = False
+            xUp = rayImp*math.cos(theta)
+            yUp = rayImp*math.sin(theta)
+            watchX = self.playerPosY
+            watchY = self.playerPosX
+            while not isWall :
+                distances[i] += rayImp
+                watchX += xUp
+                watchY += yUp
+                if matMap[math.floor(watchY)][math.floor(watchX)] == 1:
+                    isWall = True
+            i+=1
+        return distances
+
+    def getHeightVisu(self):
+        return self.heightVisu
+
+class PrintableObjects():
+    def __init__(self):
+        #invisible cursor
+        pygame.mouse.set_visible(False)
+        
+        self.displayWidth=pygame.display.Info().current_w
+        self.displayHeight=pygame.display.Info().current_h
+        self.screen = pygame.display.set_mode((self.displayWidth,self.displayHeight))
+        
+        self.bgTop = pygame.Surface((self.displayWidth,self.displayHeight))
+        self.bgTop.fill("#00F3FF")
+        self.bgBot = pygame.Surface((self.displayWidth,self.displayHeight))
+        self.bgBot.fill("#10AF08")
+        
+        self.crosshairV = pygame.Surface((2,16))
+        self.crosshairV.fill("#FF0000")
+        self.crosshairH = pygame.Surface((16,2))
+        self.crosshairH.fill("#FF0000")
         
 
-#displayPart
-def displayWalls(d, screen):
-    numbOfSlices = len(d)
-    walls = [pygame.Surface((math.ceil(screen.get_width()/numbOfSlices),2*800/d[i])) for i in range(numbOfSlices)]
-    for wall in walls:
-        wall.fill("#8B4009")
-    return walls
-
-#rayPart
-def distanceR(playerPosX, playerPosY, matMap, thetas, numbOfRays):
-    i=0
-    rayImp = 0.01
-    distances = [0.1 for i in range(numbOfRays)]
-    for theta in thetas:
-        isWall = False
-        xUp = rayImp*math.cos(theta)
-        yUp = rayImp*math.sin(theta)
-        watchX = playerPosY
-        watchY = playerPosX
-        while not isWall :
-            distances[i] += rayImp
-            watchX += xUp
-            watchY += yUp
-            if matMap[math.floor(watchY)][math.floor(watchX)] == 1:
-                isWall = True
-        i+=1
-    return distances
-
+    def computeWalls(self, allDists):
+        numbOfSlices = len(allDists)
+        self.walls = []
+        for i in range(numbOfSlices):
+            wall = pygame.Surface((math.ceil(self.displayWidth/numbOfSlices), 2*800/allDists[i]))
+            wall.fill("#8B4009")
+            self.walls.append(wall)
+        
+    def draw(self, heightVisu):
+        #first, draw the backgroud
+        self.screen.blit(self.bgTop, (0,-self.displayHeight//2+ heightVisu))
+        self.screen.blit(self.bgBot, (0,self.displayHeight//2+ heightVisu))
+        
+        #then, draw the wlls (upgrade to print them from back to front)
+        for i in range(len(self.walls)):
+            x = i*self.screen.get_width()/len(self.walls)
+            y = self.screen.get_height()//2 - self.walls[i].get_height() // 2 + heightVisu
+            self.screen.blit(self.walls[i], (x,y))
+        
+        #end, print the crosshair
+        self.screen.blit(self.crosshairV, ((self.screen.get_width()-self.crosshairV.get_width())//2,(self.screen.get_height()-self.crosshairV.get_height())//2))
+        self.screen.blit(self.crosshairH, ((self.screen.get_width()-self.crosshairH.get_width())//2,(self.screen.get_height()-self.crosshairH.get_height())//2))
+        
+        pygame.display.update()
 
 def main():
-    myMap = Maps()
-    myPlayer = Player()
-    
-    d = distanceR(myPlayer.playerPosX,myPlayer.playerPosY, myMap.matMap, myPlayer.thetas, myPlayer.numbOfRays)
-    
-    #displayPart
+    #initialise
     pygame.init()
-    
-    #invisible cursor
-    pygame.mouse.set_visible(False)
-    width=pygame.display.Info().current_w
-    height=pygame.display.Info().current_h
-    screen = pygame.display.set_mode((width,height))
     pygame.display.set_caption("Doom_like")
     clock = pygame.time.Clock()
     
-    bgTop = pygame.Surface((width,height))
-    bgTop.fill("#00F3FF")
-    bgBot = pygame.Surface((width,height))
-    bgBot.fill("#10AF08")
+    gameLoop(clock)
     
-    crosshairV = pygame.Surface((2,16))
-    crosshairV.fill("#FF0000")
-    crosshairH = pygame.Surface((16,2))
-    crosshairH.fill("#FF0000")
-    
-    walls = displayWalls(d, screen)
-    
+
+def gameLoop(clock):
+    myMap = Maps()
+    myPlayer = Player()
+    printObj = PrintableObjects()
     while True:
         #update
-        d = distanceR(myPlayer.playerPosX,myPlayer.playerPosY, myMap.matMap, myPlayer.thetas, myPlayer.numbOfRays)
+        allDists = myPlayer.distancesD(myMap.getMap())
         myPlayer.thetas = [(myPlayer.theta-myPlayer.fov+myPlayer.cst*i)*math.pi/180 for i in range(myPlayer.numbOfRays)]
-        walls = displayWalls(d, screen)
+        printObj.computeWalls(allDists)
         
+        #compute
         for event in pygame.event.get():
             #if we press the red cross
             if event.type == pygame.QUIT:
@@ -196,20 +221,12 @@ def main():
                 exit()
             myPlayer.updateOnEvent(event)
         
-        myPlayer.updateMouv(myMap)
+        #mov
+        myPlayer.updateMov(myMap.getMap())
         
         #print screen
-        screen.blit(bgTop, (0,-screen.get_height()//2+ myPlayer.heightVisu))
-        screen.blit(bgBot, (0,screen.get_height()//2+ myPlayer.heightVisu))
-        for i in range(len(walls)):
-            x = i*screen.get_width()/len(walls)
-            y = screen.get_height()//2 - walls[i].get_height() // 2 + myPlayer.heightVisu
-            screen.blit(walls[i], (x,y))
+        printObj.draw(myPlayer.getHeightVisu())
         
-        screen.blit(crosshairV, ((screen.get_width()-crosshairV.get_width())//2,(screen.get_height()-crosshairV.get_height())//2))
-        screen.blit(crosshairH, ((screen.get_width()-crosshairH.get_width())//2,(screen.get_height()-crosshairH.get_height())//2))
-        
-        pygame.display.update()
         clock.tick(60)
-    
+
 main()
