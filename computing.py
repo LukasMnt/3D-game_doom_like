@@ -1,7 +1,10 @@
 import math
 from sys import exit
 import pygame
+
+#for fps mainly (only this for the moment but I may forget to update the message):
 import time
+import heapq
 
 class Maps():
     def __init__(self):
@@ -52,7 +55,7 @@ class Player():
         self.circSpeed = 3
         
         self.fov = 60/2
-        self.numbOfRays = 96
+        self.numbOfRays = 48
         self.cst = 2*self.fov/(self.numbOfRays-1)
         self.thetas = [(self.theta-self.fov+self.cst*i)*math.pi/180 for i in range(self.numbOfRays)]
         self.theta2 = self.theta*math.pi/180
@@ -131,7 +134,7 @@ class Player():
     #rayPart
     def distancesD(self, matMap):
         i=0
-        rayImp = 0.05
+        rayImp = 0.02
         distances = [0.1 for i in range(self.numbOfRays)]
         for theta in self.thetas:
             isWall = False
@@ -154,6 +157,9 @@ class Player():
 
     def getHeightVisu(self):
         return self.heightVisu
+    
+    def getFov(self):
+        return self.fov*2
 
 class PrintableObjects():
     def __init__(self):
@@ -174,13 +180,20 @@ class PrintableObjects():
         self.crosshairH = pygame.Surface((16,2))
         self.crosshairH.fill("#FF0000")
         
-
-    def computeWalls(self, allDists):
+        self.showFPS = True
+        
+    def computeWalls(self, allDists, fov):
         numbOfSlices = len(allDists)
         self.walls = []
         for i in range(numbOfSlices):
             if allDists[i] != False:
-                wall = pygame.Surface((math.ceil(self.displayWidth/numbOfSlices), 1600/allDists[i]))
+                wallWidth = math.ceil(self.displayWidth/numbOfSlices)
+                #My way :
+                #wallHeigh = 1600/allDists[i]
+                #chatGPT's way (after 1 hour of tries, no joke) (bard is quite a failure and GPT in bing is... WHY DOES HE SPEAKS SPANNISH TO ME ????? (no joke the title of the question was spanish))
+                wallHeigh = self.displayHeight / (math.tan(fov*math.pi/360) * allDists[i])
+                
+                wall = pygame.Surface((wallWidth, wallHeigh))
                 wall.fill("#8B4009")
             else :
                 wall = pygame.Surface((math.ceil(self.displayWidth/numbOfSlices), self.displayHeight/2), pygame.SRCALPHA, 32)
@@ -188,7 +201,7 @@ class PrintableObjects():
             
             self.walls.append(wall)
             
-    def draw(self, heightVisu, fps):
+    def draw(self, heightVisu, fps, PL):
         #first, draw the backgroud
         self.screen.blit(self.bgTop, (0,-self.displayHeight//2+ heightVisu))
         self.screen.blit(self.bgBot, (0,self.displayHeight//2+ heightVisu))
@@ -199,7 +212,9 @@ class PrintableObjects():
             y = self.screen.get_height()//2 - self.walls[i].get_height() // 2 + heightVisu
             self.screen.blit(self.walls[i], (x,y))
         
-        self.displayFPS(fps)
+        if self.showFPS :
+            self.displayFPS(fps)
+            self.displayFPS(PL)
         
         #end, print the crosshair
         self.screen.blit(self.crosshairV, ((self.screen.get_width()-self.crosshairV.get_width())//2,(self.screen.get_height()-self.crosshairV.get_height())//2))
@@ -208,13 +223,11 @@ class PrintableObjects():
         pygame.display.update()
         
     def displayFPS(self,fpsInf) :
-        font = pygame.font.Font('Documents/1-Scolaire/1-PeiP/Peip2/ConfPeip/TP_pygame/TP1_resources/BradBunR.ttf',fpsInf[1])
-        img = font.render(fpsInf[0],True,(100,100,100))
+        font = pygame.font.Font('Documents/3-prog/Python/3D-game_doom_like/BradBunR.ttf',fpsInf[1])
+        img = font.render(fpsInf[0],True,(150,150,150))
         displayRect = img.get_rect()
         displayRect.center=(fpsInf[2],fpsInf[3])
         self.screen.blit(img,displayRect)
-        
-        pygame.display.update()
 
 def main():
     #initialise
@@ -231,13 +244,14 @@ def gameLoop(clock):
     printObj = PrintableObjects()
     fps = []
     meanFPS = 1
+    mean1PL = 0
     
     while True:
         t1=time.time()
         #update
         allDists = myPlayer.distancesD(myMap.getMap())
         myPlayer.thetas = [(myPlayer.theta-myPlayer.fov+myPlayer.cst*i)*math.pi/180 for i in range(myPlayer.numbOfRays)]
-        printObj.computeWalls(allDists)
+        printObj.computeWalls(allDists, myPlayer.getFov())
         #compute
         for event in pygame.event.get():
             #if we press the red cross
@@ -249,15 +263,17 @@ def gameLoop(clock):
         #mov
         myPlayer.updateMov(myMap.getMap())
         #print screen
-        printObj.draw(myPlayer.getHeightVisu(), [str(meanFPS), 100, 100, 100])
+        printObj.draw(myPlayer.getHeightVisu(), ["FPS : " + str(meanFPS), 100, 150, 50],["1% : " + str(mean1PL), 50,75, 125])
         
         clock.tick(60)
         
         t2=time.time()
         fps.append(1/(t2-t1))
-        if len(fps) > 100:
+        if len(fps) > 600:
             fps.pop(0)
         meanFPS = math.floor(sum(fps)/len(fps))
+        PL = heapq.nsmallest(6, fps)
+        mean1PL = math.floor(sum(PL)/len(PL))
 main()
 
 """
