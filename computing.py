@@ -68,10 +68,10 @@ class Player():
             if event.key == pygame.K_s:
                 self.dx = [self.dx[0],self.dx[1]-1]
                 self.dy = [self.dy[0]-1,self.dy[1]]
-            if event.key == pygame.K_a:
+            if event.key == pygame.K_d:
                 self.dx = [self.dx[0]-1,self.dx[1]]
                 self.dy = [self.dy[0],self.dy[1]+1]
-            if event.key == pygame.K_d:
+            if event.key == pygame.K_a:
                 self.dx = [self.dx[0]+1,self.dx[1]]
                 self.dy = [self.dy[0],self.dy[1]-1]
             if event.key == pygame.K_RIGHT :
@@ -102,10 +102,10 @@ class Player():
             if event.key == pygame.K_s:
                 self.dx = [self.dx[0],self.dx[1]+1]
                 self.dy = [self.dy[0]+1,self.dy[1]]
-            if event.key == pygame.K_a:
+            if event.key == pygame.K_d:
                 self.dx = [self.dx[0]+1,self.dx[1]]
                 self.dy = [self.dy[0],self.dy[1]-1]
-            if event.key == pygame.K_d:
+            if event.key == pygame.K_a:
                 self.dx = [self.dx[0]-1,self.dx[1]]
                 self.dy = [self.dy[0],self.dy[1]+1]
             if event.key == pygame.K_LSHIFT :
@@ -117,20 +117,20 @@ class Player():
         self.theta2 = self.theta*math.pi/180
         speedCos = self.run*self.speed*math.cos(self.theta2)
         speedSin = self.run*self.speed*math.sin(self.theta2)
-        if math.floor(self.playerPosY + self.dx[0]*speedCos+self.dx[1]*speedSin) >= 0 and math.floor(self.playerPosY + self.dx[0]*speedCos+self.dx[1]*speedSin) <= len(matMap)-1 and math.floor(self.playerPosX + self.dy[0]*speedCos+self.dy[1]*speedSin) >= 0 and math.floor(self.playerPosX + self.dy[0]*speedCos+self.dy[1]*speedSin) <= len(matMap[0])-1 :
+        if math.floor(self.playerPosY + self.dy[0]*speedSin+self.dy[1]*speedCos) >= 0 and math.floor(self.playerPosY + self.dy[0]*speedSin+self.dy[1]*speedCos) <= len(matMap)-1 and math.floor(self.playerPosX + self.dx[0]*speedSin+self.dx[1]*speedCos) >= 0 and math.floor(self.playerPosX + self.dx[0]*speedSin+self.dx[1]*speedCos) <= len(matMap[0])-1 :
             try :
-                if matMap[math.floor(self.playerPosY+self.dx[0]*speedCos+self.dx[1]*speedSin)][math.floor(self.playerPosX)] == 0 :
-                    self.playerPosY += self.dx[0]*speedCos+self.dx[1]*speedSin
+                if matMap[math.floor(self.playerPosY+self.dy[0]*speedSin+self.dy[1]*speedCos)][math.floor(self.playerPosX)] == 0 :
+                    self.playerPosY += self.dy[0]*speedSin+self.dy[1]*speedCos
             except :
                 pass
             try :
-                if matMap[math.floor(self.playerPosY)][math.floor(self.playerPosX+self.dy[0]*speedCos+self.dy[1]*speedSin)] == 0 :
-                    self.playerPosX += self.dy[0]*speedCos+self.dy[1]*speedSin
+                if matMap[math.floor(self.playerPosY)][math.floor(self.playerPosX+self.dx[0]*speedSin+self.dx[1]*speedCos)] == 0 :
+                    self.playerPosX += self.dx[0]*speedSin+self.dx[1]*speedCos
             except:
                 pass
         else:
-            self.playerPosY += self.dx[0]*speedCos+self.dx[1]*speedSin
-            self.playerPosX += self.dy[0]*speedCos+self.dy[1]*speedSin
+            self.playerPosY += self.dy[0]*speedSin+self.dy[1]*speedCos
+            self.playerPosX += self.dx[0]*speedSin+self.dx[1]*speedCos
         
         if self.playerPosZ > 0:
             self.playerPosZ -= 14
