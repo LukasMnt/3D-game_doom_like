@@ -39,8 +39,8 @@ class Maps():
 
 class Player():
     def __init__(self):
-        self.playerPosX = 2
-        self.playerPosY = 2
+        self.playerPosX = 4
+        self.playerPosY = 1
         self.dx = [0,0]
         self.dy = [0,0]
         self.initSpeed = 0.03
@@ -50,7 +50,7 @@ class Player():
         self.playerPosZ = 0
         self.heightVisu = 0
         
-        self.theta = 45   #where do you watch ? 0 = right, 90 = down, 180 = left, 270 = -90 = top (on the matMap)
+        self.theta = 0   #where do you watch ? 0 = right, 90 = down, 180 = left, 270 = -90 = top (on the matMap)
         self.dt = 0
         self.circSpeed = 3
         
@@ -117,20 +117,20 @@ class Player():
         self.theta2 = self.theta*math.pi/180
         speedCos = self.run*self.speed*math.cos(self.theta2)
         speedSin = self.run*self.speed*math.sin(self.theta2)
-        if math.floor(self.playerPosX + self.dx[0]*speedCos+self.dx[1]*speedSin) >= 0 and math.floor(self.playerPosX + self.dx[0]*speedCos+self.dx[1]*speedSin) <= len(matMap[0])-2 and math.floor(self.playerPosY + self.dy[0]*speedCos+self.dy[1]*speedSin) >= 0 and math.floor(self.playerPosY + self.dy[0]*speedCos+self.dy[1]*speedSin) <= len(matMap):
+        if math.floor(self.playerPosY + self.dx[0]*speedCos+self.dx[1]*speedSin) >= 0 and math.floor(self.playerPosY + self.dx[0]*speedCos+self.dx[1]*speedSin) <= len(matMap)-1 and math.floor(self.playerPosX + self.dy[0]*speedCos+self.dy[1]*speedSin) >= 0 and math.floor(self.playerPosX + self.dy[0]*speedCos+self.dy[1]*speedSin) <= len(matMap[0])-1 :
             try :
-                if matMap[math.floor(self.playerPosX+self.dx[0]*speedCos+self.dx[1]*speedSin)][math.floor(self.playerPosY)] == 0 :
-                    self.playerPosX += self.dx[0]*speedCos+self.dx[1]*speedSin
+                if matMap[math.floor(self.playerPosY+self.dx[0]*speedCos+self.dx[1]*speedSin)][math.floor(self.playerPosX)] == 0 :
+                    self.playerPosY += self.dx[0]*speedCos+self.dx[1]*speedSin
             except :
                 pass
             try :
-                if matMap[math.floor(self.playerPosX)][math.floor(self.playerPosY+self.dy[0]*speedCos+self.dy[1]*speedSin)] == 0 :
-                    self.playerPosY += self.dy[0]*speedCos+self.dy[1]*speedSin
+                if matMap[math.floor(self.playerPosY)][math.floor(self.playerPosX+self.dy[0]*speedCos+self.dy[1]*speedSin)] == 0 :
+                    self.playerPosX += self.dy[0]*speedCos+self.dy[1]*speedSin
             except:
                 pass
         else:
-            self.playerPosX += self.dx[0]*speedCos+self.dx[1]*speedSin
-            self.playerPosY += self.dy[0]*speedCos+self.dy[1]*speedSin
+            self.playerPosY += self.dx[0]*speedCos+self.dx[1]*speedSin
+            self.playerPosX += self.dy[0]*speedCos+self.dy[1]*speedSin
         
         if self.playerPosZ > 0:
             self.playerPosZ -= 14
@@ -149,8 +149,8 @@ class Player():
             isWall = False
             xStep = rayImp*math.cos(theta)
             yStep = rayImp*math.sin(theta)
-            watchX = self.playerPosY
-            watchY = self.playerPosX
+            watchX = self.playerPosX
+            watchY = self.playerPosY
             while not isWall and distances[i]<30 :
                 distances[i] += rayImp
                 watchX += xStep
