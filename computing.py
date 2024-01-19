@@ -115,29 +115,15 @@ class Player():
         self.theta += self.dt
         self.theta = self.theta%360
         self.theta2 = self.theta*math.pi/180
-        outX = False
-        outY = False
         speedCos = self.run*self.speed*math.cos(self.theta2)
         speedSin = self.run*self.speed*math.sin(self.theta2)
-        if math.floor(self.playerPosX + self.dx[0]*speedCos+self.dx[1]*speedSin) > 0 and math.floor(self.playerPosX + self.dx[0]*speedCos+self.dx[1]*speedSin) <  len(matMap[0]) :
-            if outY :
-                self.playerPosX += self.dx[0]*speedCos+self.dx[1]*speedSin
+        if math.floor(self.playerPosX + self.dx[0]*speedCos+self.dx[1]*speedSin) > 0 and math.floor(self.playerPosX + self.dx[0]*speedCos+self.dx[1]*speedSin) <  len(matMap[0]) and math.floor(self.playerPosY + self.dy[0]*speedCos+self.dy[1]*speedSin) > 0 and math.floor(self.playerPosY + self.dy[0]*speedCos+self.dy[1]*speedSin) < len(matMap):
             if matMap[math.floor(self.playerPosX + self.dx[0]*speedCos+self.dx[1]*speedSin)][math.floor(self.playerPosY)]==0 :
-                outX = False
                 self.playerPosX += self.dx[0]*speedCos+self.dx[1]*speedSin
-        else:
-            outX = True
-            self.playerPosX += self.dx[0]*speedCos+self.dx[1]*speedSin
-            
-        if math.floor(self.playerPosY + self.dy[0]*speedCos+self.dy[1]*speedSin) > 0 and math.floor(self.playerPosY + self.dy[0]*speedCos+self.dy[1]*speedSin) < len(matMap) :
-            if outX:
-                self.playerPosY += self.dy[0]*speedCos+self.dy[1]*speedSin
-
             if matMap[math.floor(self.playerPosX)][math.floor(self.playerPosY + self.dy[0]*speedCos+self.dy[1]*speedSin)]==0 :
-                outY = False
                 self.playerPosY += self.dy[0]*speedCos+self.dy[1]*speedSin
         else:
-            outY = True
+            self.playerPosX += self.dx[0]*speedCos+self.dx[1]*speedSin
             self.playerPosY += self.dy[0]*speedCos+self.dy[1]*speedSin
         
         if self.playerPosZ > 0:
