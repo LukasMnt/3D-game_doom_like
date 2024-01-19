@@ -117,18 +117,24 @@ class Player():
         self.theta2 = self.theta*math.pi/180
         speedCos = self.run*self.speed*math.cos(self.theta2)
         speedSin = self.run*self.speed*math.sin(self.theta2)
-        if math.floor(self.playerPosX + self.dx[0]*speedCos+self.dx[1]*speedSin) > 0 and math.floor(self.playerPosX + self.dx[0]*speedCos+self.dx[1]*speedSin) <  len(matMap[0]) and math.floor(self.playerPosY + self.dy[0]*speedCos+self.dy[1]*speedSin) > 0 and math.floor(self.playerPosY + self.dy[0]*speedCos+self.dy[1]*speedSin) < len(matMap):
-            if matMap[math.floor(self.playerPosX + self.dx[0]*speedCos+self.dx[1]*speedSin)][math.floor(self.playerPosY)]==0 :
-                self.playerPosX += self.dx[0]*speedCos+self.dx[1]*speedSin
-            if matMap[math.floor(self.playerPosX)][math.floor(self.playerPosY + self.dy[0]*speedCos+self.dy[1]*speedSin)]==0 :
-                self.playerPosY += self.dy[0]*speedCos+self.dy[1]*speedSin
+        if math.floor(self.playerPosX + self.dx[0]*speedCos+self.dx[1]*speedSin) >= 0 and math.floor(self.playerPosX + self.dx[0]*speedCos+self.dx[1]*speedSin) <= len(matMap[0])-2 and math.floor(self.playerPosY + self.dy[0]*speedCos+self.dy[1]*speedSin) >= 0 and math.floor(self.playerPosY + self.dy[0]*speedCos+self.dy[1]*speedSin) <= len(matMap):
+            try :
+                if matMap[math.floor(self.playerPosX+self.dx[0]*speedCos+self.dx[1]*speedSin)][math.floor(self.playerPosY)] == 0 :
+                    self.playerPosX += self.dx[0]*speedCos+self.dx[1]*speedSin
+            except :
+                pass
+            try :
+                if matMap[math.floor(self.playerPosX)][math.floor(self.playerPosY+self.dy[0]*speedCos+self.dy[1]*speedSin)] == 0 :
+                    self.playerPosY += self.dy[0]*speedCos+self.dy[1]*speedSin
+            except:
+                pass
         else:
             self.playerPosX += self.dx[0]*speedCos+self.dx[1]*speedSin
             self.playerPosY += self.dy[0]*speedCos+self.dy[1]*speedSin
         
         if self.playerPosZ > 0:
             self.playerPosZ -= 14
-                
+
         if self.heightVisu < self.playerPosZ:
             self.heightVisu += 14
         elif self.heightVisu > self.playerPosZ:
