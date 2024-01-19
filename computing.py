@@ -8,7 +8,7 @@ import heapq
 
 class Maps():
     def __init__(self):
-        self.matMap=   [[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+        self.matMap=   [[1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
                         [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1],
                         [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1],
                         [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1],
@@ -26,7 +26,7 @@ class Maps():
                         [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1],
                         [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
                         [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1],
-                        [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]]
+                        [1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]]
     
     def getMap(self):
         return self.matMap
@@ -115,17 +115,34 @@ class Player():
         self.theta += self.dt
         self.theta = self.theta%360
         self.theta2 = self.theta*math.pi/180
-        
+        outX = False
+        outY = False
         speedCos = self.run*self.speed*math.cos(self.theta2)
         speedSin = self.run*self.speed*math.sin(self.theta2)
-        if matMap[math.floor(self.playerPosX + self.dx[0]*speedCos+self.dx[1]*speedSin)][math.floor(self.playerPosY)]!=1 :
-            self.playerPosX+= self.dx[0]*speedCos+self.dx[1]*speedSin
-        if matMap[math.floor(self.playerPosX)][math.floor(self.playerPosY + self.dy[0]*speedCos+self.dy[1]*speedSin)]!=1 :
-            self.playerPosY+= self.dy[0]*speedCos+self.dy[1]*speedSin
+        if math.floor(self.playerPosX + self.dx[0]*speedCos+self.dx[1]*speedSin) > 0 and math.floor(self.playerPosX + self.dx[0]*speedCos+self.dx[1]*speedSin) <  len(matMap[0]) :
+            if outY :
+                self.playerPosX += self.dx[0]*speedCos+self.dx[1]*speedSin
+            if matMap[math.floor(self.playerPosX + self.dx[0]*speedCos+self.dx[1]*speedSin)][math.floor(self.playerPosY)]==0 :
+                outX = False
+                self.playerPosX += self.dx[0]*speedCos+self.dx[1]*speedSin
+        else:
+            outX = True
+            self.playerPosX += self.dx[0]*speedCos+self.dx[1]*speedSin
+            
+        if math.floor(self.playerPosY + self.dy[0]*speedCos+self.dy[1]*speedSin) > 0 and math.floor(self.playerPosY + self.dy[0]*speedCos+self.dy[1]*speedSin) < len(matMap) :
+            if outX:
+                self.playerPosY += self.dy[0]*speedCos+self.dy[1]*speedSin
+
+            if matMap[math.floor(self.playerPosX)][math.floor(self.playerPosY + self.dy[0]*speedCos+self.dy[1]*speedSin)]==0 :
+                outY = False
+                self.playerPosY += self.dy[0]*speedCos+self.dy[1]*speedSin
+        else:
+            outY = True
+            self.playerPosY += self.dy[0]*speedCos+self.dy[1]*speedSin
         
         if self.playerPosZ > 0:
             self.playerPosZ -= 14
-            
+                
         if self.heightVisu < self.playerPosZ:
             self.heightVisu += 14
         elif self.heightVisu > self.playerPosZ:
@@ -134,7 +151,7 @@ class Player():
     #rayPart
     def distancesD(self, matMap):
         i=0
-        rayImp = 0.02
+        rayImp = 0.1
         distances = [0.1 for i in range(self.numbOfRays)]
         for theta in self.thetas:
             isWall = False
@@ -142,16 +159,15 @@ class Player():
             yStep = rayImp*math.sin(theta)
             watchX = self.playerPosY
             watchY = self.playerPosX
-            while not isWall :
+            while not isWall and distances[i]<30 :
                 distances[i] += rayImp
                 watchX += xStep
                 watchY += yStep
                 if math.floor(watchX) >= 0 and math.floor(watchY) >= 0 and math.floor(watchX) < len(matMap[0]) and math.floor(watchY) < len(matMap):
                     if matMap[math.floor(watchY)][math.floor(watchX)] == 1:
                         isWall = True
-                else:
-                    distances[i] = False
-                    break
+            if distances[i] >= 30:
+                distances[i] = False
             i+=1
         return distances
 
@@ -223,7 +239,11 @@ class PrintableObjects():
         pygame.display.update()
         
     def displayFPS(self,fpsInf) :
-        font = pygame.font.Font('Documents/3-prog/Python/3D-game_doom_like/BradBunR.ttf',fpsInf[1])
+        if False :
+            path = "Documents/3-prog/Python/3D-game_doom_like/BradBunR.ttf"
+        else :
+            path = "BradBunR.ttf"
+        font = pygame.font.Font(path,fpsInf[1])
         img = font.render(fpsInf[0],True,(150,150,150))
         displayRect = img.get_rect()
         displayRect.center=(fpsInf[2],fpsInf[3])
@@ -269,8 +289,6 @@ def gameLoop(clock):
         #print screen
         printObj.draw(myPlayer.getHeightVisu(), ["FPS : " + str(meanFPS), 100, 150, 50],["1% : " + str(mean1PL), 50,75, 125])
         
-        clock.tick(60)
-        
         if printObj.areFPS():
             t[1]=time.time()
             fps.append(1/(t[1]-t[0]))
@@ -281,6 +299,8 @@ def gameLoop(clock):
             PL = heapq.nsmallest(math.floor(store/100), fps)
             mean1PL = math.floor(sum(PL)/len(PL))
             t[0] = t[1]
+            
+        clock.tick(60)
 main()
 
 """
