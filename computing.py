@@ -40,7 +40,7 @@ class Maps():
 class Player():
     def __init__(self):
         self.playerPosX = 4
-        self.playerPosY = 1
+        self.playerPosY = 2
         self.dx = [0,0]
         self.dy = [0,0]
         self.initSpeed = 0.03
@@ -52,7 +52,7 @@ class Player():
         
         self.theta = 0   #where do you watch ? 0 = right, 90 = down, 180 = left, 270 = -90 = top (on the matMap)
         self.dt = 0
-        self.circSpeed = 3
+        self.circSpeed = 2
         
         self.fov = 60/2
         self.numbOfRays = 48
@@ -65,19 +65,24 @@ class Player():
             if event.key == pygame.K_w:
                 self.dx = [self.dx[0],self.dx[1]+1]
                 self.dy = [self.dy[0]+1,self.dy[1]]
+            if event.key == pygame.K_a:
+                self.dx = [self.dx[0]+1,self.dx[1]]
+                self.dy = [self.dy[0],self.dy[1]-1]
             if event.key == pygame.K_s:
                 self.dx = [self.dx[0],self.dx[1]-1]
                 self.dy = [self.dy[0]-1,self.dy[1]]
             if event.key == pygame.K_d:
                 self.dx = [self.dx[0]-1,self.dx[1]]
                 self.dy = [self.dy[0],self.dy[1]+1]
-            if event.key == pygame.K_a:
-                self.dx = [self.dx[0]+1,self.dx[1]]
-                self.dy = [self.dy[0],self.dy[1]-1]
+
             if event.key == pygame.K_RIGHT :
                 self.dt += self.circSpeed
             if event.key == pygame.K_LEFT :
                 self.dt -= self.circSpeed
+
+            if event.key == pygame.K_LSHIFT :
+                self.run *= 2
+
             if event.key == pygame.K_LCTRL :
                 if self.playerPosZ == 0:
                     self.playerPosZ = -96
@@ -88,35 +93,35 @@ class Player():
             elif event.key == pygame.K_SPACE :
                 if self.playerPosZ == 0 and self.heightVisu == 0:
                     self.playerPosZ = 420
-            if event.key == pygame.K_LSHIFT :
-                self.run *= 2
                 
         elif event.type == pygame.KEYUP:
-            if event.key == pygame.K_RIGHT :
-                self.dt -= self.circSpeed
-            if event.key == pygame.K_LEFT :
-                self.dt += self.circSpeed
             if event.key == pygame.K_w:
                 self.dx = [self.dx[0],self.dx[1]-1]
                 self.dy = [self.dy[0]-1,self.dy[1]]
+            if event.key == pygame.K_a:
+                self.dx = [self.dx[0]-1,self.dx[1]]
+                self.dy = [self.dy[0],self.dy[1]+1]
             if event.key == pygame.K_s:
                 self.dx = [self.dx[0],self.dx[1]+1]
                 self.dy = [self.dy[0]+1,self.dy[1]]
             if event.key == pygame.K_d:
                 self.dx = [self.dx[0]+1,self.dx[1]]
                 self.dy = [self.dy[0],self.dy[1]-1]
-            if event.key == pygame.K_a:
-                self.dx = [self.dx[0]-1,self.dx[1]]
-                self.dy = [self.dy[0],self.dy[1]+1]
+
+            if event.key == pygame.K_RIGHT :
+                self.dt -= self.circSpeed
+            if event.key == pygame.K_LEFT :
+                self.dt += self.circSpeed
+            
             if event.key == pygame.K_LSHIFT :
                 self.run /= 2
     
     def updateMov(self, matMap):
-        self.theta += self.dt
-        self.theta = self.theta%360
+        self.theta = (self.theta + self.dt)%360
         self.theta2 = self.theta*math.pi/180
         speedCos = self.run*self.speed*math.cos(self.theta2)
         speedSin = self.run*self.speed*math.sin(self.theta2)
+        self.thetas = [(self.theta-self.fov+self.cst*i)*math.pi/180 for i in range(self.numbOfRays)]
         if math.floor(self.playerPosY + self.dy[0]*speedSin+self.dy[1]*speedCos) >= 0 and math.floor(self.playerPosY + self.dy[0]*speedSin+self.dy[1]*speedCos) <= len(matMap)-1 and math.floor(self.playerPosX + self.dx[0]*speedSin+self.dx[1]*speedCos) >= 0 and math.floor(self.playerPosX + self.dx[0]*speedSin+self.dx[1]*speedCos) <= len(matMap[0])-1 :
             try :
                 if matMap[math.floor(self.playerPosY+self.dy[0]*speedSin+self.dy[1]*speedCos)][math.floor(self.playerPosX)] == 0 :
@@ -140,11 +145,11 @@ class Player():
         elif self.heightVisu > self.playerPosZ:
             self.heightVisu -= 8
 
-    #rayPart
+    # ray casting (not optimised at all)
     def distancesD(self, matMap):
         i=0
-        rayImp = 0.1
-        distances = [0.1 for i in range(self.numbOfRays)]
+        rayImp = 0.03
+        distances = [0.03 for i in range(self.numbOfRays)]
         for theta in self.thetas:
             isWall = False
             xStep = rayImp*math.cos(theta)
@@ -152,14 +157,17 @@ class Player():
             watchX = self.playerPosX
             watchY = self.playerPosY
             while not isWall and distances[i]<30 :
-                distances[i] += rayImp
                 watchX += xStep
                 watchY += yStep
                 if math.floor(watchX) >= 0 and math.floor(watchY) >= 0 and math.floor(watchX) < len(matMap[0]) and math.floor(watchY) < len(matMap):
                     if matMap[math.floor(watchY)][math.floor(watchX)] == 1:
                         isWall = True
+
+                distances[i] += rayImp
+
             if distances[i] >= 30:
                 distances[i] = False
+                
             i+=1
         return distances
 
@@ -266,7 +274,6 @@ def gameLoop(clock):
 
         #update
         allDists = myPlayer.distancesD(myMap.getMap())
-        myPlayer.thetas = [(myPlayer.theta-myPlayer.fov+myPlayer.cst*i)*math.pi/180 for i in range(myPlayer.numbOfRays)]
         printObj.computeWalls(allDists, myPlayer.getFov())
         #compute
         for event in pygame.event.get():
