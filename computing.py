@@ -1,6 +1,8 @@
 import math
 from sys import exit
 import pygame
+
+#external files
 from player import *
 from maps import *
 from printableObjects import *
@@ -65,9 +67,9 @@ main()
 
 """
 What to improve ?
-    Moving in diagonal doubles the speed (or time sqrt(2) idk)
-    Looks a bit too rounded (infinit norme while computing allDists ?)
-    Textures must be 
+    Moving in diagonal gives more speed
+    Looks a bit too rounded (infinit norme while computing allDists ?) (multiply by cos of the angle of the ray)
+    Textures
     Look up and down
     Add mouse controll
 """
