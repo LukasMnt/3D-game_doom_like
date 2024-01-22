@@ -8,7 +8,7 @@ import heapq
 
 class Maps():
     def __init__(self):
-        self.matMap=   [[1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+        self.matMap=   [[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
                         [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1],
                         [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1],
                         [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1],
@@ -26,7 +26,7 @@ class Maps():
                         [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1],
                         [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
                         [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1],
-                        [1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]]
+                        [1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]]
     
     def getMap(self):
         return self.matMap
@@ -52,13 +52,15 @@ class Player():
         
         self.theta = 0   #where do you watch ? 0 = right, 90 = down, 180 = left, 270 = -90 = top (on the matMap)
         self.dt = 0
-        self.circSpeed = 2
+        self.circSpeed = math.pi/90
         
-        self.fov = 60/2
-        self.numbOfRays = 48
-        self.cst = 2*self.fov/(self.numbOfRays-1)
-        self.thetas = [(self.theta-self.fov+self.cst*i)*math.pi/180 for i in range(self.numbOfRays)]
-        self.theta2 = self.theta*math.pi/180
+        self.fov = math.pi/2
+        self.fovHalf = self.fov/2
+        self.numbOfRays = 400
+        self.cst = self.fov/(self.numbOfRays-1)
+        self.thetas = [(self.theta-self.fovHalf+self.cst*i) for i in range(self.numbOfRays)]
+
+        self.colorRayCasting = []
         
     def updateOnEvent(self, event):
         if event.type == pygame.KEYDOWN:
@@ -117,11 +119,10 @@ class Player():
                 self.run /= 2
     
     def updateMov(self, matMap):
-        self.theta = (self.theta + self.dt)%360
-        self.theta2 = self.theta*math.pi/180
-        speedCos = self.run*self.speed*math.cos(self.theta2)
-        speedSin = self.run*self.speed*math.sin(self.theta2)
-        self.thetas = [(self.theta-self.fov+self.cst*i)*math.pi/180 for i in range(self.numbOfRays)]
+        self.theta = (self.theta + self.dt)%(2*math.pi)
+        speedCos = self.run*self.speed*math.cos(self.theta)
+        speedSin = self.run*self.speed*math.sin(self.theta)
+        self.thetas = [(self.theta-self.fovHalf+self.cst*i) for i in range(self.numbOfRays)]
         if math.floor(self.playerPosY + self.dy[0]*speedSin+self.dy[1]*speedCos) >= 0 and math.floor(self.playerPosY + self.dy[0]*speedSin+self.dy[1]*speedCos) <= len(matMap)-1 and math.floor(self.playerPosX + self.dx[0]*speedSin+self.dx[1]*speedCos) >= 0 and math.floor(self.playerPosX + self.dx[0]*speedSin+self.dx[1]*speedCos) <= len(matMap[0])-1 :
             try :
                 if matMap[math.floor(self.playerPosY+self.dy[0]*speedSin+self.dy[1]*speedCos)][math.floor(self.playerPosX)] == 0 :
@@ -145,23 +146,31 @@ class Player():
         elif self.heightVisu > self.playerPosZ:
             self.heightVisu -= 8
 
+    def isWall(self, matMap, x, y):
+        try:
+            return matMap[y][x] == 1
+        except:
+            return False
+
+
     # ray casting (not optimised at all)
     def distancesD(self, matMap):
-        i=0
         rayImp = 0.03
         distances = [0.03 for i in range(self.numbOfRays)]
+        i=0
+        colors = []
         for theta in self.thetas:
-            isWall = False
+            isWallBool = False
             xStep = rayImp*math.cos(theta)
             yStep = rayImp*math.sin(theta)
             watchX = self.playerPosX
             watchY = self.playerPosY
-            while not isWall and distances[i]<30 :
+            while not isWallBool and distances[i]<30 :
                 watchX += xStep
                 watchY += yStep
                 if math.floor(watchX) >= 0 and math.floor(watchY) >= 0 and math.floor(watchX) < len(matMap[0]) and math.floor(watchY) < len(matMap):
                     if matMap[math.floor(watchY)][math.floor(watchX)] == 1:
-                        isWall = True
+                        isWallBool = True
 
                 distances[i] += rayImp
 
@@ -169,13 +178,47 @@ class Player():
                 distances[i] = False
                 
             i+=1
-        return distances
+            colors.append((0,255,255))
+        return distances, colors
+
+    def rayCasting(self, matMap):
+        distances = []
+        colors = []
+        for theta in self.thetas:
+            verif_x = 1-self.playerPosX%1
+            verif_y = math.tan(theta)*verif_x
+            distance_H = math.sqrt((verif_x)**2 + (verif_y)**2)
+            isWallBool = self.isWall(matMap, round(self.playerPosX + verif_x), math.floor(self.playerPosY + verif_y))
+            while not isWallBool and distance_H<20:
+                verif_x += 1
+                verif_y += math.tan(theta)
+                isWallBool = self.isWall(matMap, round(self.playerPosX + verif_x), math.floor(self.playerPosY + verif_y))
+                distance_H = math.sqrt((verif_x)**2 + (verif_y)**2)
+    
+            verif_y = 1-self.playerPosY%1
+            verif_x = verif_y / (math.tan(theta)+0.0001)
+            distance_V = math.sqrt((verif_x)**2 + (verif_y)**2)
+            isWallBool = self.isWall(matMap, math.floor(self.playerPosX + verif_x), round(self.playerPosY + verif_y))
+            while not isWallBool and distance_V<20 :
+                verif_y += 1
+                verif_x += 1 / (math.tan(theta)+0.0001)
+                isWallBool = self.isWall(matMap, math.floor(self.playerPosX + verif_x), round(self.playerPosY + verif_y))
+                distance_V = math.sqrt((verif_x)**2 + (verif_y)**2)
+
+            if min(distance_H, distance_V) == distance_V:
+                colors.append((255,0,0))
+            else:
+                colors.append((0,255,0))
+
+            distances.append(min(distance_H, distance_V))
+        return distances, colors
+    
 
     def getHeightVisu(self):
         return self.heightVisu
     
     def getFov(self):
-        return self.fov*2
+        return self.fov
 
 class PrintableObjects():
     def __init__(self):
@@ -207,7 +250,7 @@ class PrintableObjects():
                 #My way :
                 #wallHeigh = 1600/allDists[i]
                 #chatGPT's way (after 1 hour of tries, no joke) (bard is quite a failure and GPT in bing is... WHY DOES HE SPEAKS SPANNISH TO ME ????? (no joke the title of the question was spanish))
-                wallHeigh = self.displayHeight / (math.tan(fov*math.pi/360) * allDists[i])
+                wallHeigh = self.displayHeight / (math.tan(fov/2) * allDists[i])
                 
                 wall = pygame.Surface((wallWidth, wallHeigh))
                 wall.fill("#8B4009")
@@ -237,6 +280,24 @@ class PrintableObjects():
         self.screen.blit(self.crosshairH, ((self.screen.get_width()-self.crosshairH.get_width())//2,(self.screen.get_height()-self.crosshairH.get_height())//2))
         
         pygame.display.update()
+
+    def draw2D(self, myPlayer, matMap, allDists):
+        pygame.draw.rect(self.screen, (0,0,0), (0, 0, self.screen.get_width(), self.screen.get_height()))
+        for x in range(len(matMap[0])):
+            for y in range(len(matMap)):
+                if matMap[y][x] == 1:
+                    mySurface = pygame.Surface((20,20))
+                    mySurface.fill((255,0,0))
+                    self.screen.blit(mySurface, (x*20, y*20))
+
+        for i in range(len(myPlayer.thetas)):
+            pygame.draw.line(self.screen, myPlayer.colorRayCasting[i], (myPlayer.playerPosX*20, myPlayer.playerPosY*20), (20 * (myPlayer.playerPosX + allDists[i]*math.cos(myPlayer.thetas[i])), 20 * (myPlayer.playerPosY + allDists[i]*math.sin(myPlayer.thetas[i]))))
+
+        pygame.draw.line(self.screen, (0,0,255), (myPlayer.playerPosX*20, myPlayer.playerPosY*20), (20*(myPlayer.playerPosX + 20*math.cos(myPlayer.theta)), 20*(myPlayer.playerPosY + 20*math.sin(myPlayer.theta))))
+        pygame.draw.circle(self.screen, (255,0,255), (myPlayer.playerPosX*20, myPlayer.playerPosY*20), 10)
+
+        pygame.display.update()
+
         
     def displayFPS(self,fpsInf) :
         if False :
@@ -273,7 +334,7 @@ def gameLoop(clock):
     while True:
 
         #update
-        allDists = myPlayer.distancesD(myMap.getMap())
+        allDists, myPlayer.colorRayCasting = myPlayer.rayCasting(myMap.getMap())
         printObj.computeWalls(allDists, myPlayer.getFov())
         #compute
         for event in pygame.event.get():
@@ -285,8 +346,12 @@ def gameLoop(clock):
             myPlayer.updateOnEvent(event)
         #mov
         myPlayer.updateMov(myMap.getMap())
+        
+
+
         #print screen
-        printObj.draw(myPlayer.getHeightVisu(), ["FPS : " + str(meanFPS), 100, 150, 50],["1% : " + str(mean1PL), 50,75, 125])
+        #printObj.draw(myPlayer.getHeightVisu(), ["FPS : " + str(meanFPS), 100, 150, 50],["1% : " + str(mean1PL), 50,75, 125])
+        printObj.draw2D(myPlayer,myMap.getMap(), allDists)
         
         if printObj.areFPS():
             t[1]=time.time()
