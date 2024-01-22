@@ -20,13 +20,10 @@ class Player():
         
         self.fov = math.pi/2
         self.fovHalf = self.fov/2
-        self.numbOfRays = 400
+        self.numbOfRays = 401
         self.cst = self.fov/(self.numbOfRays-1)
         self.thetas = [(self.theta-self.fovHalf+self.cst*i)%(2*math.pi) for i in range(self.numbOfRays)]
-
-        #not important, used to debug ray casting
-        self.colorRayCasting = []
-        #########################################
+        self.vision_range = 30
         
     def updateOnEvent(self, event):
         if event.type == pygame.KEYDOWN:
@@ -113,49 +110,9 @@ class Player():
             self.heightVisu -= 8
 
     def isWall(self, matMap, x, y):
-        try:
+        if x>=0 and y>=0 and x<len(matMap[0]) and y<len(matMap) :
             return matMap[y][x] == 1
-        except:
-            return False
-
-
-    # ray casting (not optimised at all)
-    def distancesD(self, matMap):
-        ray_imp = 0.03
-        distances = [0.03 for i in range(self.numbOfRays)]
-        i=0
-        colors = []
-        for theta in self.thetas:
-            is_wall_bool = False
-            xStep = ray_imp*math.cos(theta)
-            yStep = ray_imp*math.sin(theta)
-            watchX = self.playerPosX
-            watchY = self.playerPosY
-            while not is_wall_bool and distances[i]<30 :
-                watchX += xStep
-                watchY += yStep
-                if math.floor(watchX) >= 0 and math.floor(watchY) >= 0 and math.floor(watchX) < len(matMap[0]) and math.floor(watchY) < len(matMap):
-                    if matMap[math.floor(watchY)][math.floor(watchX)] == 1:
-                        is_wall_bool = True
-
-                distances[i] += ray_imp
-
-            if distances[i] >= 30:
-                distances[i] = False
-            else :
-                distances[i] *= abs(math.cos(self.theta-theta)) # abs(math.cos(self.theta-theta)) makes walls less rounded in 2.5D (will reduce distances in 2D)
-                
-            i+=1
-
-            #not important, used to debug ray casting
-            colors.append((0,255,255))
-            #########################################
-
-        #not important, used to debug ray casting
-        self.colorRayCasting = colors
-        #########################################
-
-        return distances
+        return False
 
     def rayCasting(self, matMap):
         distances = []
@@ -169,35 +126,25 @@ class Player():
             verif_y = sign_y * abs(verif_x * math.tan(theta))
             distance_h = math.sqrt((verif_x)**2 + (verif_y)**2)
             is_wall_bool = self.isWall(matMap, round(self.playerPosX + verif_x + (sign_x-1)/2), math.floor(self.playerPosY + verif_y))
-            while not is_wall_bool and distance_h<20:
+            while not is_wall_bool and distance_h<self.vision_range:
                 verif_x += sign_x
                 verif_y += sign_y * abs(math.tan(theta))
                 is_wall_bool = self.isWall(matMap, round(self.playerPosX + verif_x + (sign_x-1)/2), math.floor(self.playerPosY + verif_y))
                 distance_h = math.sqrt((verif_x)**2 + (verif_y)**2)
             
-
             verif_y = (sign_y+1)/2-self.playerPosY%1
-            verif_x = sign_x * abs(verif_y / (math.tan(theta)+0.0001))
+            verif_x = sign_x * abs(verif_y / (math.tan(theta)+0.000001))
             distance_v = math.sqrt((verif_x)**2 + (verif_y)**2)
             is_wall_bool = self.isWall(matMap, math.floor(self.playerPosX + verif_x), round(self.playerPosY + verif_y + (sign_y-1)/2))
-            while not is_wall_bool and distance_v<20 :
+            while not is_wall_bool and distance_v<self.vision_range :
                 verif_y += sign_y
-                verif_x += sign_x / abs(math.tan(theta)+0.0001)
+                verif_x += sign_x / abs(math.tan(theta)+0.000001)
                 is_wall_bool = self.isWall(matMap, math.floor(self.playerPosX + verif_x), round(self.playerPosY + verif_y + (sign_y-1)/2))
                 distance_v = math.sqrt((verif_x)**2 + (verif_y)**2)
 
-            #not important, used to debug ray casting
-            if min(distance_h, distance_v) == distance_v:
-                colors.append((255,0,255))
-            else:
-                colors.append((0,255,0))
-            #########################################
-
-            distances.append(min(distance_h, distance_v)) # abs(math.cos(self.theta-theta)) makes walls less rounded in 2.5D (will reduce distances in 2D)
-        
-        #not important, used to debug ray casting
-        self.colorRayCasting = colors
-        #########################################
+            distances.append(min(distance_h, distance_v)*abs(math.cos(self.theta-theta))) # abs(math.cos(self.theta-theta)) makes walls less rounded in 2.5D (will reduce distances in 2D)
+            if distances[-1] >= self.vision_range*abs(math.cos(self.theta-theta)):
+                distances[-1] = False
 
         return distances
     

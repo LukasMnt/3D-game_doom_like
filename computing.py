@@ -46,8 +46,8 @@ def gameLoop(clock):
         myPlayer.updateMov(myMap.getMap())
         
         #print screen
-        #printObj.draw(myPlayer.getHeightVisu(), ["FPS : " + str(meanFPS), 100, 150, 50],["1% : " + str(mean1PL), 50,75, 125])
-        printObj.draw2D(myPlayer,myMap.getMap(), allDists)
+        printObj.draw(myPlayer.getHeightVisu(), ["FPS : " + str(meanFPS), 100, 150, 50],["1% : " + str(mean1PL), 50,75, 125])
+        #printObj.draw2D(myPlayer,myMap.getMap(), allDists)
         
         if printObj.areFPS():
             t[1]=time.time()

@@ -72,7 +72,7 @@ class PrintableObjects():
                     self.screen.blit(mySurface, ((x+2)*20, (y+2)*20))
 
         for i in range(len(myPlayer.thetas)):
-            pygame.draw.line(self.screen, myPlayer.colorRayCasting[i], ((2 + myPlayer.playerPosX)*20, (2 + myPlayer.playerPosY)*20), (20 * (2 + myPlayer.playerPosX + allDists[i]*math.cos(myPlayer.thetas[i])), 20 * (2 + myPlayer.playerPosY + allDists[i]*math.sin(myPlayer.thetas[i]))))
+            pygame.draw.line(self.screen, ((255,255,0)), ((2 + myPlayer.playerPosX)*20, (2 + myPlayer.playerPosY)*20), (20 * (2 + myPlayer.playerPosX + allDists[i]*math.cos(myPlayer.thetas[i])), 20 * (2 + myPlayer.playerPosY + allDists[i]*math.sin(myPlayer.thetas[i]))))
 
         pygame.draw.line(self.screen, (0,0,255), ((2 + myPlayer.playerPosX)*20, (2 + myPlayer.playerPosY)*20), (20*(2 + myPlayer.playerPosX + 20*math.cos(myPlayer.theta)), 20*(2 + myPlayer.playerPosY + 20*math.sin(myPlayer.theta))))
         pygame.draw.circle(self.screen, (255,0,255), ((2 + myPlayer.playerPosX)*20, (2 + myPlayer.playerPosY)*20), 10)
