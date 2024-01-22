@@ -32,7 +32,7 @@ def gameLoop(clock):
     while True:
 
         #update
-        allDists, myPlayer.colorRayCasting = myPlayer.rayCasting(myMap.getMap())
+        allDists = myPlayer.rayCasting(myMap.getMap())
         printObj.computeWalls(allDists, myPlayer.getFov())
         #compute
         for event in pygame.event.get():
@@ -45,8 +45,6 @@ def gameLoop(clock):
         #mov
         myPlayer.updateMov(myMap.getMap())
         
-
-
         #print screen
         #printObj.draw(myPlayer.getHeightVisu(), ["FPS : " + str(meanFPS), 100, 150, 50],["1% : " + str(mean1PL), 50,75, 125])
         printObj.draw2D(myPlayer,myMap.getMap(), allDists)

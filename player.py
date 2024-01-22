@@ -22,9 +22,11 @@ class Player():
         self.fovHalf = self.fov/2
         self.numbOfRays = 400
         self.cst = self.fov/(self.numbOfRays-1)
-        self.thetas = [(self.theta-self.fovHalf+self.cst*i) for i in range(self.numbOfRays)]
+        self.thetas = [(self.theta-self.fovHalf+self.cst*i)%(2*math.pi) for i in range(self.numbOfRays)]
 
+        #not important, used to debug ray casting
         self.colorRayCasting = []
+        #########################################
         
     def updateOnEvent(self, event):
         if event.type == pygame.KEYDOWN:
@@ -84,23 +86,23 @@ class Player():
     
     def updateMov(self, matMap):
         self.theta = (self.theta + self.dt)%(2*math.pi)
-        speedCos = self.run*self.speed*math.cos(self.theta)
-        speedSin = self.run*self.speed*math.sin(self.theta)
+        speed_cos = self.run*self.speed*math.cos(self.theta)
+        speed_sin = self.run*self.speed*math.sin(self.theta)
         self.thetas = [(self.theta-self.fovHalf+self.cst*i) for i in range(self.numbOfRays)]
-        if math.floor(self.playerPosY + self.dy[0]*speedSin+self.dy[1]*speedCos) >= 0 and math.floor(self.playerPosY + self.dy[0]*speedSin+self.dy[1]*speedCos) <= len(matMap)-1 and math.floor(self.playerPosX + self.dx[0]*speedSin+self.dx[1]*speedCos) >= 0 and math.floor(self.playerPosX + self.dx[0]*speedSin+self.dx[1]*speedCos) <= len(matMap[0])-1 :
+        if math.floor(self.playerPosY + self.dy[0]*speed_sin+self.dy[1]*speed_cos) >= 0 and math.floor(self.playerPosY + self.dy[0]*speed_sin+self.dy[1]*speed_cos) <= len(matMap)-1 and math.floor(self.playerPosX + self.dx[0]*speed_sin+self.dx[1]*speed_cos) >= 0 and math.floor(self.playerPosX + self.dx[0]*speed_sin+self.dx[1]*speed_cos) <= len(matMap[0])-1 :
             try :
-                if matMap[math.floor(self.playerPosY+self.dy[0]*speedSin+self.dy[1]*speedCos)][math.floor(self.playerPosX)] == 0 :
-                    self.playerPosY += self.dy[0]*speedSin+self.dy[1]*speedCos
+                if matMap[math.floor(self.playerPosY+self.dy[0]*speed_sin+self.dy[1]*speed_cos)][math.floor(self.playerPosX)] == 0 :
+                    self.playerPosY += self.dy[0]*speed_sin+self.dy[1]*speed_cos
             except :
                 pass
             try :
-                if matMap[math.floor(self.playerPosY)][math.floor(self.playerPosX+self.dx[0]*speedSin+self.dx[1]*speedCos)] == 0 :
-                    self.playerPosX += self.dx[0]*speedSin+self.dx[1]*speedCos
+                if matMap[math.floor(self.playerPosY)][math.floor(self.playerPosX+self.dx[0]*speed_sin+self.dx[1]*speed_cos)] == 0 :
+                    self.playerPosX += self.dx[0]*speed_sin+self.dx[1]*speed_cos
             except:
                 pass
         else:
-            self.playerPosY += self.dy[0]*speedSin+self.dy[1]*speedCos
-            self.playerPosX += self.dx[0]*speedSin+self.dx[1]*speedCos
+            self.playerPosY += self.dy[0]*speed_sin+self.dy[1]*speed_cos
+            self.playerPosX += self.dx[0]*speed_sin+self.dx[1]*speed_cos
         
         if self.playerPosZ > 0:
             self.playerPosZ -= 14
@@ -119,63 +121,84 @@ class Player():
 
     # ray casting (not optimised at all)
     def distancesD(self, matMap):
-        rayImp = 0.03
+        ray_imp = 0.03
         distances = [0.03 for i in range(self.numbOfRays)]
         i=0
         colors = []
         for theta in self.thetas:
-            isWallBool = False
-            xStep = rayImp*math.cos(theta)
-            yStep = rayImp*math.sin(theta)
+            is_wall_bool = False
+            xStep = ray_imp*math.cos(theta)
+            yStep = ray_imp*math.sin(theta)
             watchX = self.playerPosX
             watchY = self.playerPosY
-            while not isWallBool and distances[i]<30 :
+            while not is_wall_bool and distances[i]<30 :
                 watchX += xStep
                 watchY += yStep
                 if math.floor(watchX) >= 0 and math.floor(watchY) >= 0 and math.floor(watchX) < len(matMap[0]) and math.floor(watchY) < len(matMap):
                     if matMap[math.floor(watchY)][math.floor(watchX)] == 1:
-                        isWallBool = True
+                        is_wall_bool = True
 
-                distances[i] += rayImp
+                distances[i] += ray_imp
 
             if distances[i] >= 30:
                 distances[i] = False
+            else :
+                distances[i] *= abs(math.cos(self.theta-theta)) # abs(math.cos(self.theta-theta)) makes walls less rounded in 2.5D (will reduce distances in 2D)
                 
             i+=1
+
+            #not important, used to debug ray casting
             colors.append((0,255,255))
-        return distances, colors
+            #########################################
+
+        #not important, used to debug ray casting
+        self.colorRayCasting = colors
+        #########################################
+
+        return distances
 
     def rayCasting(self, matMap):
         distances = []
         colors = []
         for theta in self.thetas:
+
+            signe_x = round(abs(math.cos(theta))/(math.cos(theta)+0.001))
+            signe_y = round(abs(math.sin(theta))/(math.sin(theta)+0.001))
+
             verif_x = 1-self.playerPosX%1
             verif_y = math.tan(theta)*verif_x
-            distance_H = math.sqrt((verif_x)**2 + (verif_y)**2)
-            isWallBool = self.isWall(matMap, round(self.playerPosX + verif_x), math.floor(self.playerPosY + verif_y))
-            while not isWallBool and distance_H<20:
+            distance_h = math.sqrt((verif_x)**2 + (verif_y)**2)
+            is_wall_bool = self.isWall(matMap, round(self.playerPosX + verif_x), math.floor(self.playerPosY + verif_y))
+            while not is_wall_bool and distance_h<20:
                 verif_x += 1
                 verif_y += math.tan(theta)
-                isWallBool = self.isWall(matMap, round(self.playerPosX + verif_x), math.floor(self.playerPosY + verif_y))
-                distance_H = math.sqrt((verif_x)**2 + (verif_y)**2)
+                is_wall_bool = self.isWall(matMap, round(self.playerPosX + verif_x), math.floor(self.playerPosY + verif_y))
+                distance_h = math.sqrt((verif_x)**2 + (verif_y)**2)
     
             verif_y = 1-self.playerPosY%1
-            verif_x = verif_y / (math.tan(theta)+0.0001)
-            distance_V = math.sqrt((verif_x)**2 + (verif_y)**2)
-            isWallBool = self.isWall(matMap, math.floor(self.playerPosX + verif_x), round(self.playerPosY + verif_y))
-            while not isWallBool and distance_V<20 :
+            verif_x = (verif_y) / (math.tan(theta)+0.0001)
+            distance_v = math.sqrt((verif_x)**2 + (verif_y)**2)
+            is_wall_bool = self.isWall(matMap, math.floor(self.playerPosX + verif_x), round(self.playerPosY + verif_y))
+            while not is_wall_bool and distance_v<20 :
                 verif_y += 1
                 verif_x += 1 / (math.tan(theta)+0.0001)
-                isWallBool = self.isWall(matMap, math.floor(self.playerPosX + verif_x), round(self.playerPosY + verif_y))
-                distance_V = math.sqrt((verif_x)**2 + (verif_y)**2)
+                is_wall_bool = self.isWall(matMap, math.floor(self.playerPosX + verif_x), round(self.playerPosY + verif_y))
+                distance_v = math.sqrt((verif_x)**2 + (verif_y)**2)
 
-            if min(distance_H, distance_V) == distance_V:
-                colors.append((255,0,0))
+            #not important, used to debug ray casting
+            if min(distance_h, distance_v) == distance_v:
+                colors.append((255,0,255))
             else:
                 colors.append((0,255,0))
+            #########################################
 
-            distances.append(min(distance_H, distance_V))
-        return distances, colors
+            distances.append(min(distance_h, distance_v)*abs(math.cos(self.theta-theta))) # abs(math.cos(self.theta-theta)) makes walls less rounded in 2.5D (will reduce distances in 2D)
+        
+        #not important, used to debug ray casting
+        self.colorRayCasting = colors
+        #########################################
+
+        return distances
     
 
     def getHeightVisu(self):

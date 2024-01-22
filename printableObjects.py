@@ -31,7 +31,7 @@ class PrintableObjects():
                 #My way :
                 #wallHeigh = 1600/allDists[i]
                 #chatGPT's way (after 1 hour of tries, no joke) (bard is quite a failure and GPT in bing is... WHY DOES HE SPEAKS SPANNISH TO ME ????? (no joke the title of the question was spanish))
-                wallHeigh = self.displayHeight / (math.tan(fov/2) * allDists[i])
+                wallHeigh = self.displayHeight / ((math.tan(fov/2) * allDists[i])+0.01)
                 
                 wall = pygame.Surface((wallWidth, wallHeigh))
                 wall.fill("#8B4009")
@@ -69,13 +69,13 @@ class PrintableObjects():
                 if matMap[y][x] == 1:
                     mySurface = pygame.Surface((20,20))
                     mySurface.fill((255,0,0))
-                    self.screen.blit(mySurface, (x*20, y*20))
+                    self.screen.blit(mySurface, ((x+2)*20, (y+2)*20))
 
         for i in range(len(myPlayer.thetas)):
-            pygame.draw.line(self.screen, myPlayer.colorRayCasting[i], (myPlayer.playerPosX*20, myPlayer.playerPosY*20), (20 * (myPlayer.playerPosX + allDists[i]*math.cos(myPlayer.thetas[i])), 20 * (myPlayer.playerPosY + allDists[i]*math.sin(myPlayer.thetas[i]))))
+            pygame.draw.line(self.screen, myPlayer.colorRayCasting[i], ((2 + myPlayer.playerPosX)*20, (2 + myPlayer.playerPosY)*20), (20 * (2 + myPlayer.playerPosX + allDists[i]*math.cos(myPlayer.thetas[i])), 20 * (2 + myPlayer.playerPosY + allDists[i]*math.sin(myPlayer.thetas[i]))))
 
-        pygame.draw.line(self.screen, (0,0,255), (myPlayer.playerPosX*20, myPlayer.playerPosY*20), (20*(myPlayer.playerPosX + 20*math.cos(myPlayer.theta)), 20*(myPlayer.playerPosY + 20*math.sin(myPlayer.theta))))
-        pygame.draw.circle(self.screen, (255,0,255), (myPlayer.playerPosX*20, myPlayer.playerPosY*20), 10)
+        pygame.draw.line(self.screen, (0,0,255), ((2 + myPlayer.playerPosX)*20, (2 + myPlayer.playerPosY)*20), (20*(2 + myPlayer.playerPosX + 20*math.cos(myPlayer.theta)), 20*(2 + myPlayer.playerPosY + 20*math.sin(myPlayer.theta))))
+        pygame.draw.circle(self.screen, (255,0,255), ((2 + myPlayer.playerPosX)*20, (2 + myPlayer.playerPosY)*20), 10)
 
         pygame.display.update()
 
