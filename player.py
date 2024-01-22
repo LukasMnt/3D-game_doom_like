@@ -162,27 +162,28 @@ class Player():
         colors = []
         for theta in self.thetas:
 
-            signe_x = round(abs(math.cos(theta))/(math.cos(theta)+0.001))
-            signe_y = round(abs(math.sin(theta))/(math.sin(theta)+0.001))
+            sign_x = round(abs(math.cos(theta))/(math.cos(theta)+0.001))
+            sign_y = round(abs(math.sin(theta))/(math.sin(theta)+0.001))
 
-            verif_x = 1-self.playerPosX%1
-            verif_y = math.tan(theta)*verif_x
+            verif_x = (sign_x+1)/2-self.playerPosX%1
+            verif_y = sign_y * abs(verif_x * math.tan(theta))
             distance_h = math.sqrt((verif_x)**2 + (verif_y)**2)
-            is_wall_bool = self.isWall(matMap, round(self.playerPosX + verif_x), math.floor(self.playerPosY + verif_y))
+            is_wall_bool = self.isWall(matMap, round(self.playerPosX + verif_x + (sign_x-1)/2), math.floor(self.playerPosY + verif_y))
             while not is_wall_bool and distance_h<20:
-                verif_x += 1
-                verif_y += math.tan(theta)
-                is_wall_bool = self.isWall(matMap, round(self.playerPosX + verif_x), math.floor(self.playerPosY + verif_y))
+                verif_x += sign_x
+                verif_y += sign_y * abs(math.tan(theta))
+                is_wall_bool = self.isWall(matMap, round(self.playerPosX + verif_x + (sign_x-1)/2), math.floor(self.playerPosY + verif_y))
                 distance_h = math.sqrt((verif_x)**2 + (verif_y)**2)
-    
-            verif_y = 1-self.playerPosY%1
-            verif_x = (verif_y) / (math.tan(theta)+0.0001)
+            
+
+            verif_y = (sign_y+1)/2-self.playerPosY%1
+            verif_x = sign_x * abs(verif_y / (math.tan(theta)+0.0001))
             distance_v = math.sqrt((verif_x)**2 + (verif_y)**2)
-            is_wall_bool = self.isWall(matMap, math.floor(self.playerPosX + verif_x), round(self.playerPosY + verif_y))
+            is_wall_bool = self.isWall(matMap, math.floor(self.playerPosX + verif_x), round(self.playerPosY + verif_y + (sign_y-1)/2))
             while not is_wall_bool and distance_v<20 :
-                verif_y += 1
-                verif_x += 1 / (math.tan(theta)+0.0001)
-                is_wall_bool = self.isWall(matMap, math.floor(self.playerPosX + verif_x), round(self.playerPosY + verif_y))
+                verif_y += sign_y
+                verif_x += sign_x / abs(math.tan(theta)+0.0001)
+                is_wall_bool = self.isWall(matMap, math.floor(self.playerPosX + verif_x), round(self.playerPosY + verif_y + (sign_y-1)/2))
                 distance_v = math.sqrt((verif_x)**2 + (verif_y)**2)
 
             #not important, used to debug ray casting
@@ -192,7 +193,7 @@ class Player():
                 colors.append((0,255,0))
             #########################################
 
-            distances.append(min(distance_h, distance_v)*abs(math.cos(self.theta-theta))) # abs(math.cos(self.theta-theta)) makes walls less rounded in 2.5D (will reduce distances in 2D)
+            distances.append(min(distance_h, distance_v)) # abs(math.cos(self.theta-theta)) makes walls less rounded in 2.5D (will reduce distances in 2D)
         
         #not important, used to debug ray casting
         self.colorRayCasting = colors
