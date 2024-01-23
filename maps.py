@@ -1,5 +1,6 @@
 class Maps():
     def __init__(self):
+        # just a map made with a tab of tab, every lines must be the same lenght for the code but you can make a rectangle / fill the outside with 0
         self.matMap=   [[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
                         [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1],
                         [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1],
@@ -20,11 +21,14 @@ class Maps():
                         [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1],
                         [1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]]
     
+    # returns the map
     def get_map(self):
         return self.matMap
     
+    # usefull for the future I guess
     def update_map():
         pass
     
+    # usefull for the future I guess
     def change_map():
         pass    
