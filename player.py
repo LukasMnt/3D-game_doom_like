@@ -96,7 +96,7 @@ class Player():
         dist_player_walls = 0.1
         
         #if player moving in the map
-        if math.floor(self.playerPosY + self.dy[0]*speed_sin+self.dy[1]*speed_cos) >= 0 and math.floor(self.playerPosY + self.dy[0]*speed_sin+self.dy[1]*speed_cos) <= len(matMap)-1 and math.floor(self.playerPosX + self.dx[0]*speed_sin+self.dx[1]*speed_cos) >= 0 and math.floor(self.playerPosX + self.dx[0]*speed_sin+self.dx[1]*speed_cos) <= len(matMap[0])-1 :
+        if math.floor(self.playerPosY + self.dy[0]*speed_sin+self.dy[1]*speed_cos) >= 0 and math.floor(self.playerPosY + self.dy[0]*speed_sin+self.dy[1]*speed_cos + sign_dy*dist_player_walls) <= len(matMap)-1 and math.floor(self.playerPosX + self.dx[0]*speed_sin+self.dx[1]*speed_cos) >= 0 and math.floor(self.playerPosX + self.dx[0]*speed_sin+self.dx[1]*speed_cos + sign_dx*dist_player_walls) <= len(matMap[0])-1 :
             
             #must try because if player has to stay out of the map, not working
             try :
