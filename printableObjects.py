@@ -20,9 +20,9 @@ class PrintableObjects():
         self.crosshairH = pygame.Surface((16,2))
         self.crosshairH.fill("#FF0000")
         
-        self.showFPS = True
+        self.show_FPS = True
         
-    def computeWalls(self, allDists, fov):
+    def compute_walls(self, allDists, fov):
         numbOfSlices = len(allDists)
         self.walls = []
         for i in range(numbOfSlices):
@@ -41,7 +41,7 @@ class PrintableObjects():
             
             self.walls.append(wall)
             
-    def draw(self, heightVisu, fps, PL):
+    def draw(self, heightVisu, fps, percent_low):
         #first, draw the backgroud
         self.screen.blit(self.bgTop, (0,-self.displayHeight//2+ heightVisu))
         self.screen.blit(self.bgBot, (0,self.displayHeight//2+ heightVisu))
@@ -52,9 +52,9 @@ class PrintableObjects():
             y = self.screen.get_height()//2 - self.walls[i].get_height() // 2 + heightVisu
             self.screen.blit(self.walls[i], (x,y))
         
-        if self.showFPS :
-            self.displayFPS(fps)
-            self.displayFPS(PL)
+        if self.show_FPS :
+            self.display_FPS(fps)
+            self.display_FPS(percent_low)
         
         #end, print the crosshair
         self.screen.blit(self.crosshairV, ((self.screen.get_width()-self.crosshairV.get_width())//2,(self.screen.get_height()-self.crosshairV.get_height())//2))
@@ -62,7 +62,7 @@ class PrintableObjects():
         
         pygame.display.update()
 
-    def draw2D(self, myPlayer, matMap, allDists):
+    def draw_2D(self, myPlayer, matMap, allDists):
         pygame.draw.rect(self.screen, (0,0,0), (0, 0, self.screen.get_width(), self.screen.get_height()))
         for x in range(len(matMap[0])):
             for y in range(len(matMap)):
@@ -80,16 +80,13 @@ class PrintableObjects():
         pygame.display.update()
 
         
-    def displayFPS(self,fpsInf) :
-        if False :
-            path = "Documents/3-prog/Python/3D-game_doom_like/BradBunR.ttf"
-        else :
-            path = "BradBunR.ttf"
+    def display_FPS(self,fpsInf) :
+        path = "BradBunR.ttf"
         font = pygame.font.Font(path,fpsInf[1])
         img = font.render(fpsInf[0],True,(150,150,150))
         displayRect = img.get_rect()
         displayRect.center=(fpsInf[2],fpsInf[3])
         self.screen.blit(img,displayRect)
 
-    def areFPS(self):
-        return self.showFPS
+    def are_FPS(self):
+        return self.show_FPS

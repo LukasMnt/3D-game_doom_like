@@ -20,11 +20,11 @@ class Maps():
                         [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1],
                         [1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]]
     
-    def getMap(self):
+    def get_map(self):
         return self.matMap
     
-    def updateMap():
+    def update_map():
         pass
     
-    def changeMap():
+    def change_map():
         pass    
